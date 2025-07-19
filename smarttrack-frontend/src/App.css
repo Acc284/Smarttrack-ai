@@ -1,0 +1,76 @@
+/* App.css */
+
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #e0f7fa, #e8f5e9, #fffde7);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+/* Background animation */
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Stylish container for the whole app */
+.app-background {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make MUI paper look more elegant */
+.MuiPaper-root {
+  border-radius: 16px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Button hover effects */
+.MuiButton-root:hover {
+  transform: scale(1.02);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Navigation bar styling */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #1976d2;
+  padding: 10px;
+}
+
+nav a {
+  margin: 0 12px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: bold;
+  font-size: 16px;
+  transition: color 0.3s;
+}
+
+nav a:hover {
+  color: #ffd54f;
+}
+
+nav button {
+  margin-left: 20px;
+  background-color: #fff;
+  color: #1976d2;
+  border: none;
+  padding: 6px 12px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+nav button:hover {
+  background-color: #bbdefb;
+  transform: scale(1.05);
+}
