@@ -26,25 +26,25 @@ SmartTrack is a full-stack web application that automates student attendance usi
 
 # Installation:
 
-   # Backend Setup (Flask):
+     Backend Setup (Flask):
          git clone https://github.com/your-username/smarttrack.git
          cd smarttrack/backend
          *pip install -r requirements.txt*
     
-   # Create a MySQL database called smartrack.
-   # Update the DB config in app.py if needed,   
+    Create a MySQL database called smartrack.
+    Update the DB config in app.py if needed,   
                 mysql.connector.connect(
                 host="localhost",
                 user="root",
                 password="your-password",
                 database="smartrack"
                 )
-   # Frontend Setup (React):
+     Frontend Setup (React):
             cd ../frontend
             npm install
             npm start
 
-   # Folder Structure:
+# Folder Structure:
             
      smarttrack/
      │
