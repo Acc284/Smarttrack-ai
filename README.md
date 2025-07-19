@@ -100,7 +100,3 @@ smarttrack/
 * 🔗 [LinkedIn](https://www.linkedin.com/in/naveen-kumar-b49a39283)
 
 ```
-
----
-
-```
