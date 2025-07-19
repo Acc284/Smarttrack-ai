@@ -71,17 +71,17 @@ Installation:
 
 
 
-  # Acknowledgements
-    face_recognition :  https://github.com/ageitgey/face_recognition/tree/master/face_recognition
-    OpenCV
-    Material UI
-    Flask
+ Acknowledgements
+     
+      face_recognition :  https://github.com/ageitgey/face_recognition/tree/master/face_recognition
+      OpenCV
+      Material UI
+      Flask
 
 
 
   # Author
-  *Naveen Kumar*
-  
+  *Naveen Kumar*:
     https://github.com/Acc284
     https://www.linkedin.com/in/naveen-kumar-b49a39283
     
