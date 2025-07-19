@@ -64,7 +64,7 @@
 
 # Acknowledgements
      
-      face_recognition :  https://github.com/ageitgey/face_recognition/tree/master/face_recognition
+      Face_recognition 
       OpenCV
       Material UI
       Flask
