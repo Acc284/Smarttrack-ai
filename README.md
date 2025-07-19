@@ -3,7 +3,7 @@ SmartTrack: AI-Powered Student Attendance Portal
 SmartTrack is a full-stack web application that automates student attendance using facial recognition technology. It eliminates the need for manual roll calls and offers real-time tracking, analytics, and student management in a centralized portal.
 
 
-Tech Stack:
+# Tech Stack:
 
 | Layer        | Tech Used                              |
 |--------------|----------------------------------------|
@@ -13,7 +13,7 @@ Tech Stack:
 | Deployment   | Vercel (Frontend) + Heroku (Backend)   |
 
 
-Key Features:
+# Key Features:
 
 -  *Facial Recognition Attendance*
 -  AI-powered detection using OpenCV + `face_recognition`
@@ -24,7 +24,7 @@ Key Features:
 -  Responsive UI built with Material UI
 
 
-Installation:
+# Installation:
 
    # Backend Setup (Flask):
          git clone https://github.com/your-username/smarttrack.git
@@ -62,16 +62,7 @@ Installation:
 
 
 
-
-
-
-
-
-
-
-
-
- Acknowledgements
+# Acknowledgements
      
       face_recognition :  https://github.com/ageitgey/face_recognition/tree/master/face_recognition
       OpenCV
@@ -80,10 +71,13 @@ Installation:
 
 
 
-  # Author
-  *Naveen Kumar*:
-    https://github.com/Acc284
-    https://www.linkedin.com/in/naveen-kumar-b49a39283
+  ## Author
+
+**Naveen Kumar**
+
+- [GitHub](https://github.com/Acc284)  
+- [LinkedIn](https://www.linkedin.com/in/naveen-kumar-b49a39283)
+
     
 
 
