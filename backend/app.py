@@ -1,6 +1,10 @@
 from flask import Flask, request, jsonify, Response, session
 from flask_cors import CORS
-import face_recognition
+try:
+    import face_recognition
+except ImportError:
+    face_recognition = None
+    print("⚠️ face_recognition module not available (likely in deployment).")
 import cv2
 import shutil
 import numpy as np
@@ -424,4 +428,3 @@ def reload_faces():
 if __name__ == '__main__':
     print("[START] Flask server starting on http://localhost:5000 ...")
     app.run(debug=True, port=5000, use_reloader=False)
-
