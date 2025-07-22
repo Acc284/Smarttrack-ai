@@ -1,33 +1,30 @@
-# Base image with Python and system libraries needed for dlib/face-recognition
 FROM python:3.10-slim
 
-# Install system dependencies
+# Install system packages
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
-    libopenblas-dev \
-    liblapack-dev \
-    libx11-dev \
-    libgtk-3-dev \
-    libboost-python-dev \
-    libboost-system-dev \
-    libgl1-mesa-glx \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
     libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
+    libgtk-3-dev \
+    python3-dev \
+    libboost-all-dev \
+    && apt-get clean
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install
-COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the app code
+# Copy all files
 COPY . .
+
+# Install Python dependencies
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
 # Expose port
 EXPOSE 5000
 
-# Run the Flask app
+# Run the app
 CMD ["python", "app.py"]
