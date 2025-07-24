@@ -1,9 +1,13 @@
-FROM danielgatis/dlib:python3.10
+FROM continuumio/miniconda3
 
 WORKDIR /app
 
 COPY . .
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Create env with all deps including dlib
+RUN conda create -n smarttrack python=3.10 -y \
+    && conda run -n smarttrack pip install --upgrade pip \
+    && conda run -n smarttrack pip install -r requirements.txt
 
-CMD ["python", "app.py"]
+# Activate env and run app
+CMD ["conda", "run", "-n", "smarttrack", "python", "app.py"]
