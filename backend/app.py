@@ -9,7 +9,9 @@ import cv2
 import shutil
 import numpy as np
 import os
+import pickle
 import base64
+from dotenv import load_dotenv
 import mysql.connector
 from flask_session import Session
 from datetime import datetime, date, timedelta
@@ -18,6 +20,9 @@ from io import StringIO
 from pytz import timezone
 from werkzeug.utils import secure_filename
 import traceback
+from mysql.connector import Error
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'nav'
@@ -30,14 +35,34 @@ CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
 
 # ---------- Database Connection ----------
 def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="naveen#15",
-        database="smartrack"
-    )
+    try:
+        conn = mysql.connector.connect(
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASS"),
+            database=os.getenv("DB_NAME")
+        )
+        if conn.is_connected():
+            print("[DEBUG] Connected to MySQL DB")
+        return conn
+    except Error as e:
+        print(f"[ERROR] Database connection failed: {e}")
+        return None
 
-db = get_db_connection()
+@app.route("/test-db")
+def test_db():
+    conn = get_db_connection()
+    if conn and conn.is_connected():
+        cursor = conn.cursor()
+        cursor.execute("SHOW TABLES;")
+        tables = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify({"status": "connected", "tables": [t[0] for t in tables]})
+    else:
+        return jsonify({"status": "failed", "message": "Could not connect to DB"}), 500
+
 
 def ensure_db_connection():
     global db
@@ -92,11 +117,13 @@ def register_student():
         if not name or not image:
             return jsonify({'status': 'error', 'message': 'Name and image required'}), 400
 
+        # Insert student into DB
         cursor = get_cursor()
         cursor.execute("INSERT INTO students (name) VALUES (%s)", (name,))
         db.commit()
         cursor.close()
 
+        # Save the image to known faces directory
         folder_path = os.path.join(KNOWN_FACES_DIR, secure_filename(name))
         os.makedirs(folder_path, exist_ok=True)
         header, encoded = image.split(",", 1)
@@ -106,25 +133,37 @@ def register_student():
         with open(image_path, "wb") as f:
             f.write(image_bytes)
 
+        # Reload known faces from disk
         load_known_faces()
+
         return jsonify({'status': 'success', 'message': f'{name} registered successfully'})
     except Exception as e:
         print("❌ Register Error:", e)
         traceback.print_exc()
         return jsonify({'status': 'error', 'message': 'Server error'}), 500
 
+
+
 @app.route('/students', methods=['GET'])
 def get_students():
     try:
         ensure_db_connection()
         cursor = get_cursor()
+        cursor.execute("SELECT DATABASE()")
+        current_db = cursor.fetchone()[0]
+
         cursor.execute("SELECT id, name FROM students")
         students = cursor.fetchall()
         cursor.close()
+
+        print(f"[DEBUG] Connected to DB: {current_db}")
+        print(f"[DEBUG] Students fetched: {students}")
+
         return jsonify([{'id': s[0], 'name': s[1]} for s in students])
     except Exception as e:
         print("❌ /students failed:", e)
         return jsonify([]), 500
+
 
 
 @app.route('/student/<int:id>', methods=['DELETE'])
@@ -198,13 +237,14 @@ def mark_attendance():
                     return jsonify({'status': 'error', 'message': 'Student not found in records'}), 404
                 student_id = student[0]
 
-                cursor.execute("SELECT * FROM attendance WHERE student_id = %s AND DATE(time) = CURDATE()", (student_id,))
+                cursor.execute("SELECT * FROM attendance WHERE student_id = %s AND DATE(timestamp) = CURDATE()", (student_id,))
                 if cursor.fetchone():
                     cursor.close()
                     return jsonify({'status': 'error', 'message': 'Attendance already marked'}), 409
 
                 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                cursor.execute("INSERT INTO attendance (student_id, time) VALUES (%s, %s)", (student_id, now))
+                cursor = get_cursor()
+                cursor.execute("INSERT INTO attendance (student_id) VALUES (%s)", (student_id,))
                 db.commit()
                 cursor.close()
                 return jsonify({'status': 'success', 'message': f'Attendance marked for {name}', 'name': name}), 200
@@ -218,18 +258,17 @@ def mark_attendance():
         traceback.print_exc()
         return jsonify({'status': 'error', 'message': 'Server error'}), 500
 
-
 @app.route('/attendance/today', methods=['GET'])
 def get_attendance_today():
     print("[DEBUG] /attendance/today called")
     try:
         cursor = get_cursor()
         cursor.execute("""
-            SELECT students.id, students.name, attendance.time
+            SELECT students.id, students.name, attendance.timestamp
             FROM attendance
             JOIN students ON attendance.student_id = students.id
-            WHERE DATE(attendance.time) = CURDATE()
-            ORDER BY attendance.time ASC
+            WHERE DATE(attendance.timestamp) = CURDATE()
+            ORDER BY attendance.timestamp ASC
         """)
         rows = cursor.fetchall()
         cursor.close()
@@ -248,7 +287,7 @@ def get_absentees_today():
         cursor = get_cursor()
         cursor.execute("SELECT id, name FROM students")
         all_students = cursor.fetchall()
-        cursor.execute("SELECT DISTINCT student_id FROM attendance WHERE DATE(time) = CURDATE()")
+        cursor.execute("SELECT DISTINCT student_id FROM attendance WHERE DATE(timestamp) = CURDATE()")
         attended_ids = {row[0] for row in cursor.fetchall()}
         cursor.close()
         return jsonify([{'id': s[0], 'name': s[1]} for s in all_students if s[0] not in attended_ids])
@@ -262,10 +301,10 @@ def download_today_attendance_csv():
     try:
         cursor = get_cursor()
         cursor.execute("""
-            SELECT students.id, students.name, attendance.time
+            SELECT students.id, students.name, attendance.timestamp
             FROM attendance
             JOIN students ON attendance.student_id = students.id
-            WHERE DATE(attendance.time) = CURDATE()
+            WHERE DATE(attendance.timestamp) = CURDATE()
         """)
         rows = cursor.fetchall()
         cursor.close()
@@ -293,7 +332,7 @@ def get_student_profile(id):
         if not student:
             cursor.close()
             return jsonify({'error': 'Student not found'}), 404
-        cursor.execute("SELECT time FROM attendance WHERE student_id = %s ORDER BY time DESC", (id,))
+        cursor.execute("SELECT timestamp FROM attendance WHERE student_id = %s ORDER BY timestamp DESC", (id,))
         attendance = cursor.fetchall()
         cursor.close()
         return jsonify({
@@ -321,7 +360,7 @@ def admin_summary():
             total = total_result[0] if total_result else 0
             print("[DEBUG] Total students:", total)
 
-            cursor.execute("SELECT COUNT(DISTINCT student_id) FROM attendance WHERE DATE(time) = %s", (today,))
+            cursor.execute("SELECT COUNT(DISTINCT student_id) FROM attendance WHERE DATE(timestamp) = %s", (today,))
             attended_result = cursor.fetchone()
             attended = attended_result[0] if attended_result else 0
             print("[DEBUG] Attended today:", attended)
@@ -334,7 +373,7 @@ def admin_summary():
             total_result = cursor.fetchone()
             total = total_result[0] if total_result else 0
 
-            cursor.execute("SELECT COUNT(DISTINCT student_id) FROM attendance WHERE DATE(time) = %s", (today,))
+            cursor.execute("SELECT COUNT(DISTINCT student_id) FROM attendance WHERE DATE(timestamp) = %s", (today,))
             attended_result = cursor.fetchone()
             attended = attended_result[0] if attended_result else 0
 
@@ -357,11 +396,12 @@ def get_students_status():
     try:
         # Open a fresh connection per request
         connection = mysql.connector.connect(
-            host='localhost',
-            user='root',       # 🔁 Replace this
-            password='naveen#15',  # 🔁 Replace this
-            database='smartrack'            # ✅ This is correct if you're using 'smartrack'
-        )
+         host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASS"),
+         database=os.getenv("DB_NAME"),
+         port=int(os.getenv("DB_PORT"))
+         )
         cursor = connection.cursor()
 
         today = date.today().isoformat()
@@ -371,7 +411,7 @@ def get_students_status():
         students = cursor.fetchall()
 
         # Fetch today's attendance
-        cursor.execute("SELECT student_id FROM attendance WHERE DATE(time) = %s", (today,))
+        cursor.execute("SELECT student_id FROM attendance WHERE DATE(timestamp) = %s", (today,))
         present_ids = {row[0] for row in cursor.fetchall()}
 
         # Build status list
