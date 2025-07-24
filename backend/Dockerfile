@@ -1,13 +1,36 @@
-FROM continuumio/miniconda3
+FROM python:3.10-slim
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    libopenblas-dev \
+    liblapack-dev \
+    libx11-dev \
+    libgtk-3-dev \
+    libboost-all-dev \
+    libatlas-base-dev \
+    libprotobuf-dev \
+    protobuf-compiler \
+    pkg-config \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    libtbb2 \
+    libtbb-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libdc1394-22-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy project files
 WORKDIR /app
-
 COPY . .
 
-# Create env with all deps including dlib
-RUN conda create -n smarttrack python=3.10 -y \
-    && conda run -n smarttrack pip install --upgrade pip \
-    && conda run -n smarttrack pip install -r requirements.txt
+# Install Python deps
+RUN pip install --upgrade pip \
+    && pip install face-recognition==1.3.0 \
+    && pip install -r requirements.txt
 
-# Activate env and run app
-CMD ["conda", "run", "-n", "smarttrack", "python", "app.py"]
+CMD ["python", "app.py"]
