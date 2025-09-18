@@ -1,8 +1,3 @@
-Sure! Here's your fully formatted `README.md` content, ready to **copy and paste** as-is into your project:
-
----
-
-````markdown
 # 🎓 SmartTrack: AI-Powered Student Attendance Portal
 
 SmartTrack is a full-stack web application that **automates student attendance using facial recognition**. It eliminates manual roll calls and provides **real-time tracking, insightful analytics**, and centralized student management with a sleek UI.
