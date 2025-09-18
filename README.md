@@ -11,7 +11,6 @@ SmartTrack is a full-stack web application that **automates student attendance u
 | 🖥️ Frontend  | React.js, Material UI                         |
 | ⚙️ Backend   | Python (Flask), OpenCV, `face_recognition` API |
 | 🗄️ Database  | MySQL                                         |
-| ☁️ Deployment| Vercel (Frontend) & Heroku (Backend)          |
 
 ---
 
